@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import { useRiskContext } from '../context/RiskContext';
 import { StatCard } from '../components/dashboard/StatCard';
@@ -60,6 +60,12 @@ export default function DashboardPage() {
     : 0;
 
   const [isIncidentModalOpen, setIsIncidentModalOpen] = useState<boolean>(false);
+  const [selectedMatrixCell, setSelectedMatrixCell] = useState<{ prob: any; imp: any } | null>(null);
+
+  const matrixFilteredRisks = useMemo(() => {
+    if (!selectedMatrixCell) return filteredRisks;
+    return filteredRisks.filter(r => r.probability === selectedMatrixCell.prob && r.impact === selectedMatrixCell.imp);
+  }, [filteredRisks, selectedMatrixCell]);
 
   const activeProject = projects.find(p => p.id === selectedProjectId);
   const topCriticalRisk = filteredRisks.find(r => r.severity === 'Critical') || filteredRisks[0];
@@ -202,8 +208,16 @@ export default function DashboardPage() {
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-4">
         {/* Left Column: Visual Threat Matrix & Active Risk Items (7 cols) */}
         <div className="lg:col-span-7 space-y-4">
-          <RiskMatrix risks={filteredRisks} />
-          <RecentRisks risks={filteredRisks} />
+          <RiskMatrix 
+            risks={filteredRisks} 
+            selectedCell={selectedMatrixCell}
+            onSelectCell={setSelectedMatrixCell}
+          />
+          <RecentRisks 
+            risks={matrixFilteredRisks} 
+            activeFilterCoord={selectedMatrixCell}
+            onClearFilter={() => setSelectedMatrixCell(null)}
+          />
         </div>
 
         {/* Right Column: Financial Breakdown, Executive Briefing & Stress Testing (5 cols) */}

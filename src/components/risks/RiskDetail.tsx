@@ -3,7 +3,7 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
-import { RiskItem, StatusLevel, TreatmentStrategy, LifecycleStage } from '../../types/risk';
+import { RiskItem, StatusLevel, TreatmentStrategy, LifecycleStage, ProbabilityLevel, ImpactLevel, calculateSeverity } from '../../types/risk';
 import { useRiskContext } from '../../context/RiskContext';
 import { Badge } from '../ui/Badge';
 import { Button } from '../ui/Button';
@@ -585,6 +585,81 @@ export const RiskDetail: React.FC<RiskDetailProps> = ({ risk }) => {
               <p className="text-[11px] text-slate-500 dark:text-slate-400">
                 Remaining exposure after evaluating {linkedControls.length} linked control(s).
               </p>
+            </div>
+          </div>
+
+          {/* Interactive 5x5 Visual Matrix Selector Grid */}
+          <div className="pt-2 border-t border-slate-100 dark:border-slate-800">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-2.5">
+              <span className="text-xs font-bold text-slate-800 dark:text-slate-200 flex items-center gap-1.5">
+                <Crosshair className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                <span>Interactive 5×5 Matrix (Click any cell to re-score Probability × Impact):</span>
+              </span>
+              <div className="flex items-center gap-3 text-[10px] text-slate-500 dark:text-slate-400">
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-indigo-600 inline-block" /> Inherent
+                </span>
+                <span className="flex items-center gap-1">
+                  <span className="w-2.5 h-2.5 rounded-xs bg-emerald-600 inline-block" /> Residual
+                </span>
+                <span>Rows: Impact (5→1) · Cols: Prob (1→5)</span>
+              </div>
+            </div>
+
+            <div className="grid grid-cols-5 gap-1.5 p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-200 dark:border-slate-700/80">
+              {[5, 4, 3, 2, 1].map(imp => (
+                [1, 2, 3, 4, 5].map(prob => {
+                  const cellScore = imp * prob;
+                  const isInherent = (risk.inherentProbability || risk.probability) === prob && (risk.inherentImpact || risk.impact) === imp;
+                  const isResidual = (risk.residualProbability || risk.probability) === prob && (risk.residualImpact || risk.impact) === imp;
+
+                  return (
+                    <button
+                      key={`${imp}-${prob}`}
+                      type="button"
+                      onClick={async () => {
+                        const newScore = imp * prob;
+                        const newSev = calculateSeverity(newScore);
+                        await updateRisk(risk.id, {
+                          inherentProbability: prob as ProbabilityLevel,
+                          inherentImpact: imp as ImpactLevel,
+                          inherentScore: newScore,
+                          inherentSeverity: newSev,
+                          probability: prob as ProbabilityLevel,
+                          impact: imp as ImpactLevel,
+                          score: newScore,
+                          severity: newSev
+                        });
+                        addToast('Score Updated', `Re-scored ${risk.id} to P:${prob} × I:${imp} = ${newScore} (${newSev}).`, 'success');
+                      }}
+                      className={`p-1.5 rounded-lg text-center font-mono-code font-bold text-xs transition-all cursor-pointer relative group flex flex-col items-center justify-center min-h-[44px] ${
+                        isInherent 
+                          ? 'ring-2 ring-indigo-500 bg-indigo-600 text-white shadow-md z-10'
+                          : isResidual
+                          ? 'ring-2 ring-emerald-500 bg-emerald-600 text-white shadow-md z-10'
+                          : cellScore >= 16
+                          ? 'bg-red-500/15 dark:bg-red-950/40 text-red-700 dark:text-red-300 hover:bg-red-500 hover:text-white'
+                          : cellScore >= 10
+                          ? 'bg-amber-500/15 dark:bg-amber-950/40 text-amber-700 dark:text-amber-300 hover:bg-amber-500 hover:text-white'
+                          : 'bg-emerald-500/15 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-300 hover:bg-emerald-500 hover:text-white'
+                      }`}
+                      title={`P:${prob} × I:${imp} = ${cellScore}`}
+                    >
+                      <span className="text-xs">{cellScore}</span>
+                      {isInherent && (
+                        <span className="text-[8px] font-extrabold uppercase bg-white text-indigo-700 px-1 rounded-xs mt-0.5 shadow-2xs">
+                          Inherent
+                        </span>
+                      )}
+                      {isResidual && !isInherent && (
+                        <span className="text-[8px] font-extrabold uppercase bg-white text-emerald-700 px-1 rounded-xs mt-0.5 shadow-2xs">
+                          Residual
+                        </span>
+                      )}
+                    </button>
+                  );
+                })
+              ))}
             </div>
           </div>
         </div>

@@ -17,7 +17,9 @@ export async function POST(request: Request) {
       teamMembers = [],
       currentUser,
       imageBase64,
-      imageMimeType
+      imageMimeType,
+      activeRiskId,
+      activePath
     } = body;
 
     // Fallback to persistent database records if not supplied in payload
@@ -86,7 +88,7 @@ ${krisSummary}
 GOVERNANCE APPROVALS (APPROVE PHASE):
 ${approvalsSummary}
 
-${imageBase64 ? 'NOTE: The user has attached an image/screenshot of system error telemetry, architecture diagram, or metric log. Analyze and diagnose the visual/system threat in relation to the risk register.' : ''}
+${activeRiskId ? `CURRENT SCREEN FOCUS: The user is currently viewing Risk ID [${activeRiskId}]. Focus your analysis primarily on this risk unless they ask about others.` : activePath ? `CURRENT SCREEN: User is currently on page "${activePath}".` : ''}
 
 INSTRUCTIONS FOR COPILOT (POWERED BY QWEN 27B):
 1. Always respond directly, concisely, and specifically to the user's exact question: "${userQuery || 'Analyze current enterprise risk portfolio'}".
@@ -94,7 +96,9 @@ INSTRUCTIONS FOR COPILOT (POWERED BY QWEN 27B):
 3. If asked about a specific risk (e.g., RSK-105, RSK-101) or a specific person (e.g., Sunny Prasad, Yash Raj), focus exclusively on that item/person with concrete metrics.
 4. If asked about telemetry or live monitoring events, explain the underlying risk connection and actionable next steps.
 5. Always cite concrete data proof: exact Risk IDs (e.g. [RSK-104]), quantitative $5x5$ scores, assigned owners, and dollar exposures.
-6. Format with sharp, executive-ready markdown bullet points.`;
+6. Format with sharp, executive-ready markdown bullet points.
+7. If your response clearly recommends an operational action on a specific risk (e.g. reassigning owner, updating status to Mitigated/Monitoring/Closed, or setting treatment strategy), append an action tag on its own line at the very end of your response in this exact format:
+ACTION_TRIGGER:{"type":"status"|"owner"|"strategy","riskId":"RSK-xxx","targetValue":"Mitigated"|"Yash Raj"|"Mitigate","label":"Set status to Mitigated"}`;
 
     // 1. Primary: Ultra-Fast Groq Qwen (qwen/qwen3.8-27b) with failover to openai/gpt-oss-120b
     const groqResult = await callGroqAI({

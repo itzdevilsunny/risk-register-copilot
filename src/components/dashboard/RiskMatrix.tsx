@@ -7,11 +7,26 @@ import { useRouter } from 'next/navigation';
 
 interface RiskMatrixProps {
   risks: RiskItem[];
+  selectedCell?: { prob: ProbabilityLevel; imp: ImpactLevel } | null;
+  onSelectCell?: (cell: { prob: ProbabilityLevel; imp: ImpactLevel } | null) => void;
 }
 
-export const RiskMatrix: React.FC<RiskMatrixProps> = ({ risks }) => {
+export const RiskMatrix: React.FC<RiskMatrixProps> = ({ 
+  risks, 
+  selectedCell: controlledCell,
+  onSelectCell: controlledOnSelectCell
+}) => {
   const router = useRouter();
-  const [selectedCell, setSelectedCell] = useState<{ prob: ProbabilityLevel; imp: ImpactLevel } | null>(null);
+  const [internalCell, setInternalCell] = useState<{ prob: ProbabilityLevel; imp: ImpactLevel } | null>(null);
+
+  const selectedCell = controlledCell !== undefined ? controlledCell : internalCell;
+  const setSelectedCell = (cell: { prob: ProbabilityLevel; imp: ImpactLevel } | null) => {
+    if (controlledOnSelectCell) {
+      controlledOnSelectCell(cell);
+    } else {
+      setInternalCell(cell);
+    }
+  };
 
   const activeRisks = risks || [];
 

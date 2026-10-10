@@ -5,13 +5,19 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { RiskItem } from '../../types/risk';
 import { Badge } from '../ui/Badge';
-import { ArrowUpRight, ShieldAlert, ArrowRight } from 'lucide-react';
+import { ArrowUpRight, ShieldAlert, ArrowRight, X, Filter } from 'lucide-react';
 
 interface RecentRisksProps {
   risks: RiskItem[];
+  activeFilterCoord?: { prob: number; imp: number } | null;
+  onClearFilter?: () => void;
 }
 
-export const RecentRisks: React.FC<RecentRisksProps> = ({ risks }) => {
+export const RecentRisks: React.FC<RecentRisksProps> = ({ 
+  risks, 
+  activeFilterCoord, 
+  onClearFilter 
+}) => {
   const router = useRouter();
   const recentList = risks.slice(0, 6);
 
@@ -19,11 +25,28 @@ export const RecentRisks: React.FC<RecentRisksProps> = ({ risks }) => {
     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card">
       <div className="flex items-center justify-between mb-4">
         <div>
-          <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
-            <ShieldAlert className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
-            <span>Active Risk Items</span>
-          </h3>
-          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">Highest score and recent operational risk threats requiring attention.</p>
+          <div className="flex items-center gap-2">
+            <h3 className="text-sm font-bold text-slate-900 dark:text-slate-100 flex items-center gap-2">
+              <ShieldAlert className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
+              <span>Active Risk Items</span>
+            </h3>
+            {activeFilterCoord && (
+              <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800 flex items-center gap-1">
+                <Filter className="w-2.5 h-2.5" />
+                <span>P:{activeFilterCoord.prob} × I:{activeFilterCoord.imp}</span>
+                {onClearFilter && (
+                  <button onClick={onClearFilter} className="hover:text-indigo-900 dark:hover:text-white ml-0.5">
+                    <X className="w-3 h-3" />
+                  </button>
+                )}
+              </span>
+            )}
+          </div>
+          <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
+            {activeFilterCoord 
+              ? `Filtered to risks at matrix coordinate (${activeFilterCoord.prob} × ${activeFilterCoord.imp}).`
+              : 'Highest score and recent operational risk threats requiring attention.'}
+          </p>
         </div>
 
         <Link
