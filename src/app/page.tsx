@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { useRiskContext } from '../context/RiskContext';
 import { StatCard } from '../components/dashboard/StatCard';
@@ -11,7 +11,7 @@ import { ExecutiveBriefingCard } from '../components/dashboard/ExecutiveBriefing
 import { LifecyclePipelineCard } from '../components/dashboard/LifecyclePipelineCard';
 import { WhatIfSimulator } from '../components/dashboard/WhatIfSimulator';
 import { LiveMonitoringTicker } from '../components/analytics/LiveMonitoringTicker';
-import { Button } from '../components/ui/Button';
+import { Button } from '../ui/Button';
 import { 
   ShieldAlert, 
   AlertTriangle, 
@@ -23,7 +23,10 @@ import {
   CheckSquare,
   ArrowRight,
   ShieldCheck,
-  Flame
+  Flame,
+  RotateCcw,
+  RefreshCw,
+  FolderKanban
 } from 'lucide-react';
 import { IncidentToRiskModal } from '../components/risks/IncidentToRiskModal';
 
@@ -36,10 +39,19 @@ export default function DashboardPage() {
     kris,
     getFilteredRisks, 
     selectedProjectId, 
+    setSelectedProjectId,
     projects,
     currentUser,
-    workspaceSettings 
+    workspaceSettings,
+    refreshData,
+    openCopilot,
+    addToast
   } = useRiskContext();
+
+  const [isRefreshing, setIsRefreshing] = useState(false);
+  const [isIncidentModalOpen, setIsIncidentModalOpen] = useState(false);
+  const [selectedMatrixCell, setSelectedMatrixCell] = useState<{ prob: any; imp: any } | null>(null);
+  const [activeKpiFilter, setActiveKpiFilter] = useState<'all' | 'critical' | 'aboveAppetite' | null>(null);
 
   const filteredRisks = getFilteredRisks();
 
@@ -55,60 +67,132 @@ export default function DashboardPage() {
   const expiringEvidenceCount = evidence.filter(e => e.validityExpiryDate && new Date(e.validityExpiryDate) < now).length;
   const pendingApprovalsCount = approvals.filter(a => a.status === 'Pending').length;
 
-  const avgProgress = totalRisks > 0 
-    ? Math.round(filteredRisks.reduce((acc, r) => acc + r.mitigationProgress, 0) / totalRisks) 
-    : 0;
-
-  const [isIncidentModalOpen, setIsIncidentModalOpen] = useState<boolean>(false);
-  const [selectedMatrixCell, setSelectedMatrixCell] = useState<{ prob: any; imp: any } | null>(null);
+  const handleManualRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      await refreshData();
+      addToast('Workspace Synced', 'Refreshed latest risk scores, controls, and telemetry.', 'success');
+    } catch (e) {
+      addToast('Sync Error', 'Failed to synchronize with backend.', 'error');
+    } finally {
+      setIsRefreshing(false);
+    }
+  };
 
   const matrixFilteredRisks = useMemo(() => {
-    if (!selectedMatrixCell) return filteredRisks;
-    return filteredRisks.filter(r => r.probability === selectedMatrixCell.prob && r.impact === selectedMatrixCell.imp);
-  }, [filteredRisks, selectedMatrixCell]);
+    let result = filteredRisks;
+    if (selectedMatrixCell) {
+      result = result.filter(r => r.probability === selectedMatrixCell.prob && r.impact === selectedMatrixCell.imp);
+    }
+    if (activeKpiFilter === 'critical') {
+      result = result.filter(r => r.severity === 'Critical' || r.severity === 'High');
+    } else if (activeKpiFilter === 'aboveAppetite') {
+      result = result.filter(r => r.aboveAppetite || ((r.residualScore ?? r.score) > workspaceSettings.riskAppetiteThreshold));
+    }
+    return result;
+  }, [filteredRisks, selectedMatrixCell, activeKpiFilter, workspaceSettings.riskAppetiteThreshold]);
 
-  const activeProject = projects.find(p => p.id === selectedProjectId);
-  const topCriticalRisk = filteredRisks.find(r => r.severity === 'Critical') || filteredRisks[0];
+  const activeFilterLabel = activeKpiFilter === 'critical' 
+    ? 'Critical / High Exposure' 
+    : activeKpiFilter === 'aboveAppetite' 
+      ? 'Above Risk Appetite' 
+      : null;
+
+  const handleClearAllFilters = () => {
+    setSelectedMatrixCell(null);
+    setActiveKpiFilter(null);
+  };
 
   return (
     <div className="space-y-4 animate-in fade-in-50 pb-10">
-      {/* Top Executive Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 pb-2 border-b border-slate-200/60 dark:border-slate-800">
+      {/* Top Executive Header with Interactive Workstream Selector */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-slate-200/60 dark:border-slate-800">
         <div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-2 flex-wrap">
             <h1 className="text-lg sm:text-xl font-black text-slate-900 dark:text-slate-100 tracking-tight">
               Welcome back, {currentUser.name}
             </h1>
-            <span className="px-2 py-0.5 rounded-md text-[11px] font-bold bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-              {activeProject ? activeProject.name : 'MNB Research Operations'}
-            </span>
+            
+            {/* Interactive Workstream Project Selector */}
+            <div className="flex items-center gap-1.5">
+              <FolderKanban className="w-3.5 h-3.5 text-indigo-500" />
+              <select
+                value={selectedProjectId || ''}
+                onChange={(e) => setSelectedProjectId(e.target.value)}
+                className="px-2.5 py-1 text-xs font-bold rounded-lg bg-slate-100 dark:bg-slate-800 text-slate-800 dark:text-slate-200 border border-slate-200 dark:border-slate-700 cursor-pointer focus:outline-none focus:ring-1 focus:ring-indigo-500"
+              >
+                <option value="">All Workstreams & Projects</option>
+                {projects.map(p => (
+                  <option key={p.id} value={p.id}>{p.name} ({p.code})</option>
+                ))}
+              </select>
+            </div>
           </div>
           <p className="text-[11px] text-slate-500 dark:text-slate-400 mt-0.5 font-medium">
             Enterprise Risk Operating System · Connect Risks to Controls, Evidence, Actions, & Decisions.
           </p>
         </div>
 
-        {/* Live Status Indicators & Action Tools */}
-        <div className="flex items-center gap-2.5 shrink-0">
-          <Button
-            variant="outline"
-            size="sm"
-            icon={<Flame className="w-3.5 h-3.5 text-rose-500 animate-pulse" />}
-            onClick={() => setIsIncidentModalOpen(true)}
-            className="border-rose-200 dark:border-rose-900/60 hover:bg-rose-50 dark:hover:bg-rose-950/30 text-rose-700 dark:text-rose-300 font-bold text-xs"
+        {/* Live Status Indicators & 1-Click Sync */}
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={handleManualRefresh}
+            disabled={isRefreshing}
+            className="flex items-center gap-1.5 px-2.5 py-1 text-xs font-semibold rounded-lg bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 transition-colors cursor-pointer"
+            title="Refresh database records"
           >
-            Incident ➔ Risk
-          </Button>
+            <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin text-indigo-600' : 'text-slate-500'}`} />
+            <span>{isRefreshing ? 'Syncing...' : 'Sync Data'}</span>
+          </button>
 
-          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pl-1 border-l border-slate-200 dark:border-slate-800">
+          <div className="hidden sm:flex items-center gap-2 text-xs text-slate-600 dark:text-slate-400 pl-2 border-l border-slate-200 dark:border-slate-800">
             <div className="flex items-center gap-1.5 font-medium">
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
-              <span>Database Synced</span>
+              <span>Live Engine</span>
             </div>
             <span className="text-slate-300 dark:text-slate-700">•</span>
-            <span className="font-mono-code font-bold text-slate-800 dark:text-slate-200">{totalRisks} Risks Active</span>
+            <span className="font-mono text-xs font-bold text-slate-800 dark:text-slate-200">{totalRisks} Active</span>
           </div>
         </div>
+      </div>
+
+      {/* 1-Click Action Shortcuts Toolbar */}
+      <div className="flex items-center gap-2 overflow-x-auto pb-1 text-xs">
+        <Link 
+          href="/add" 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl font-bold shadow-xs shrink-0 transition-colors"
+        >
+          <Plus className="w-3.5 h-3.5" />
+          <span>Register Risk</span>
+        </Link>
+        <button 
+          onClick={() => setIsIncidentModalOpen(true)} 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-rose-50 dark:bg-rose-950/60 hover:bg-rose-100 dark:hover:bg-rose-900/60 text-rose-700 dark:text-rose-300 border border-rose-200 dark:border-rose-900/60 rounded-xl font-bold shrink-0 transition-colors cursor-pointer"
+        >
+          <Flame className="w-3.5 h-3.5 text-rose-500 animate-pulse" />
+          <span>Incident ➔ Risk</span>
+        </button>
+        <button 
+          onClick={() => openCopilot()} 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-indigo-50 dark:bg-indigo-950/60 hover:bg-indigo-100 dark:hover:bg-indigo-900/60 text-indigo-700 dark:text-indigo-300 border border-indigo-200 dark:border-indigo-800 rounded-xl font-bold shrink-0 transition-colors cursor-pointer"
+        >
+          <Sparkles className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Ask Copilot AI</span>
+        </button>
+        <Link 
+          href="/report" 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl font-bold shrink-0 transition-colors"
+        >
+          <FileText className="w-3.5 h-3.5 text-slate-500" />
+          <span>Executive Report</span>
+        </Link>
+        <Link 
+          href="/approvals" 
+          className="inline-flex items-center gap-1.5 px-3 py-1.5 bg-slate-100 dark:bg-slate-800 hover:bg-slate-200 dark:hover:bg-slate-700 text-slate-700 dark:text-slate-300 border border-slate-200 dark:border-slate-700 rounded-xl font-bold shrink-0 transition-colors"
+        >
+          <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
+          <span>Governance Sign-Offs ({pendingApprovalsCount})</span>
+        </Link>
       </div>
 
       {/* Risk Appetite Breach Alert Banner (Compact) */}
@@ -135,40 +219,55 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* Real-Time Non-Repeating Live Telemetry Stream */}
+      {/* Real-Time Live Telemetry Stream */}
       <LiveMonitoringTicker />
 
       {/* 6 OPERATIONAL KPI CARDS (Immediate Executive Pulse) */}
       <div className="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-2.5 sm:gap-3">
-        <StatCard
-          label="Total Risks"
-          value={totalRisks}
-          subValue="in register"
-          trend={{ text: "Active", type: "neutral" }}
-          icon={<ShieldAlert className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />}
-          iconBg="bg-indigo-50 dark:bg-indigo-950/60"
-          href="/register"
-        />
+        <div 
+          onClick={() => setActiveKpiFilter(activeKpiFilter === 'all' ? null : 'all')}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Total Risks"
+            value={totalRisks}
+            subValue="in register"
+            trend={{ text: "Active", type: "neutral" }}
+            icon={<ShieldAlert className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />}
+            iconBg="bg-indigo-50 dark:bg-indigo-950/60"
+            href="/register"
+          />
+        </div>
 
-        <StatCard
-          label="Critical / High"
-          value={criticalHighRisks}
-          subValue="high exposure"
-          trend={{ text: criticalHighRisks > 3 ? 'Action Needed' : 'Controlled', type: criticalHighRisks > 3 ? 'negative' : 'positive' }}
-          icon={<AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />}
-          iconBg="bg-red-50 dark:bg-red-950/60"
-          href="/register?severity=Critical"
-        />
+        <div 
+          onClick={() => setActiveKpiFilter(activeKpiFilter === 'critical' ? null : 'critical')}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Critical / High"
+            value={criticalHighRisks}
+            subValue="high exposure"
+            trend={{ text: criticalHighRisks > 3 ? 'Action Needed' : 'Controlled', type: criticalHighRisks > 3 ? 'negative' : 'positive' }}
+            icon={<AlertTriangle className="w-3.5 h-3.5 text-red-600 dark:text-red-400" />}
+            iconBg="bg-red-50 dark:bg-red-950/60"
+            href="/register?severity=Critical"
+          />
+        </div>
 
-        <StatCard
-          label="Above Appetite"
-          value={aboveAppetiteRisks.length}
-          subValue="requires approval"
-          trend={{ text: aboveAppetiteRisks.length > 0 ? 'Breach' : 'Within Limit', type: aboveAppetiteRisks.length > 0 ? 'negative' : 'positive' }}
-          icon={<ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />}
-          iconBg="bg-amber-50 dark:bg-amber-950/60"
-          href="/approvals"
-        />
+        <div 
+          onClick={() => setActiveKpiFilter(activeKpiFilter === 'aboveAppetite' ? null : 'aboveAppetite')}
+          className="cursor-pointer"
+        >
+          <StatCard
+            label="Above Appetite"
+            value={aboveAppetiteRisks.length}
+            subValue="requires approval"
+            trend={{ text: aboveAppetiteRisks.length > 0 ? 'Breach' : 'Within Limit', type: aboveAppetiteRisks.length > 0 ? 'negative' : 'positive' }}
+            icon={<ShieldCheck className="w-3.5 h-3.5 text-amber-600 dark:text-amber-400" />}
+            iconBg="bg-amber-50 dark:bg-amber-950/60"
+            href="/approvals"
+          />
+        </div>
 
         <StatCard
           label="Overdue Actions"
@@ -216,7 +315,8 @@ export default function DashboardPage() {
           <RecentRisks 
             risks={matrixFilteredRisks} 
             activeFilterCoord={selectedMatrixCell}
-            onClearFilter={() => setSelectedMatrixCell(null)}
+            activeFilterLabel={activeFilterLabel}
+            onClearFilter={handleClearAllFilters}
           />
         </div>
 

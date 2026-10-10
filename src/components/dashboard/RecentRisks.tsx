@@ -10,16 +10,22 @@ import { ArrowUpRight, ShieldAlert, ArrowRight, X, Filter } from 'lucide-react';
 interface RecentRisksProps {
   risks: RiskItem[];
   activeFilterCoord?: { prob: number; imp: number } | null;
+  activeFilterLabel?: string | null;
   onClearFilter?: () => void;
 }
 
 export const RecentRisks: React.FC<RecentRisksProps> = ({ 
   risks, 
   activeFilterCoord, 
+  activeFilterLabel,
   onClearFilter 
 }) => {
   const router = useRouter();
   const recentList = risks.slice(0, 6);
+
+  const displayFilter = activeFilterCoord 
+    ? `P:${activeFilterCoord.prob} × I:${activeFilterCoord.imp}` 
+    : activeFilterLabel;
 
   return (
     <div className="p-5 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200/90 dark:border-slate-800 shadow-card">
@@ -30,12 +36,12 @@ export const RecentRisks: React.FC<RecentRisksProps> = ({
               <ShieldAlert className="w-4 h-4 text-indigo-600 dark:text-indigo-400" />
               <span>Active Risk Items</span>
             </h3>
-            {activeFilterCoord && (
+            {displayFilter && (
               <span className="px-2 py-0.5 rounded-full text-[10px] font-bold bg-indigo-100 dark:bg-indigo-950/60 text-indigo-700 dark:text-indigo-400 border border-indigo-300 dark:border-indigo-800 flex items-center gap-1">
                 <Filter className="w-2.5 h-2.5" />
-                <span>P:{activeFilterCoord.prob} × I:{activeFilterCoord.imp}</span>
+                <span>{displayFilter}</span>
                 {onClearFilter && (
-                  <button onClick={onClearFilter} className="hover:text-indigo-900 dark:hover:text-white ml-0.5">
+                  <button onClick={onClearFilter} className="hover:text-indigo-900 dark:hover:text-white ml-0.5 cursor-pointer">
                     <X className="w-3 h-3" />
                   </button>
                 )}
@@ -43,8 +49,8 @@ export const RecentRisks: React.FC<RecentRisksProps> = ({
             )}
           </div>
           <p className="text-xs text-slate-500 dark:text-slate-400 mt-0.5">
-            {activeFilterCoord 
-              ? `Filtered to risks at matrix coordinate (${activeFilterCoord.prob} × ${activeFilterCoord.imp}).`
+            {displayFilter 
+              ? `Filtered to risks matching "${displayFilter}". Showing top results.`
               : 'Highest score and recent operational risk threats requiring attention.'}
           </p>
         </div>
@@ -120,6 +126,11 @@ export const RecentRisks: React.FC<RecentRisksProps> = ({
             </div>
           </div>
         ))}
+        {recentList.length === 0 && (
+          <div className="p-8 text-center text-xs text-slate-500 dark:text-slate-400">
+            No active risks match the current filter criteria.
+          </div>
+        )}
       </div>
     </div>
   );
