@@ -247,25 +247,43 @@ export default function ControlsPage() {
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <span className={`px-2.5 py-1 rounded-full text-[10px] font-extrabold inline-flex items-center gap-1 ${
-                        ctrl.effectiveness === 'Effective'
-                          ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50'
-                          : ctrl.effectiveness === 'Partially Effective'
-                            ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-800 dark:text-amber-400 border border-amber-200 dark:border-amber-900/50'
-                            : 'bg-red-100 dark:bg-red-950/50 text-red-800 dark:text-red-400 border border-red-200 dark:border-red-900/50'
-                      }`}>
-                        {ctrl.effectiveness === 'Effective' && <CheckCircle2 className="w-3 h-3" />}
-                        {ctrl.effectiveness === 'Partially Effective' && <AlertTriangle className="w-3 h-3" />}
-                        {ctrl.effectiveness === 'Ineffective' && <XCircle className="w-3 h-3" />}
-                        {ctrl.effectiveness}
-                      </span>
+                      <select
+                        value={ctrl.effectiveness}
+                        onChange={(e) => updateControl(ctrl.id, { effectiveness: e.target.value as any })}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-extrabold border cursor-pointer focus:outline-hidden ${
+                          ctrl.effectiveness === 'Effective'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                            : ctrl.effectiveness === 'Partially Effective'
+                            ? 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                            : 'bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800'
+                        }`}
+                      >
+                        <option value="Effective">Effective</option>
+                        <option value="Partially Effective">Partially Effective</option>
+                        <option value="Ineffective">Ineffective</option>
+                      </select>
                     </td>
 
                     <td className="px-4 py-4 whitespace-nowrap">
-                      <div className="font-medium text-slate-900 dark:text-slate-100">
-                        Status: <span className={`font-bold ${ctrl.testStatus === 'Passed' ? 'text-emerald-600 dark:text-emerald-400' : ctrl.testStatus === 'Failed' ? 'text-red-600 dark:text-red-400' : 'text-amber-600 dark:text-amber-400'}`}>{ctrl.testStatus}</span>
-                      </div>
-                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Tested: {ctrl.lastTestDate || 'N/A'}</div>
+                      <select
+                        value={ctrl.testStatus}
+                        onChange={(e) => updateControl(ctrl.id, { 
+                          testStatus: e.target.value as any, 
+                          lastTestDate: new Date().toISOString().split('T')[0] 
+                        })}
+                        className={`px-2 py-1 rounded-lg text-[10px] font-bold border cursor-pointer focus:outline-hidden ${
+                          ctrl.testStatus === 'Passed'
+                            ? 'bg-emerald-50 dark:bg-emerald-950/50 text-emerald-800 dark:text-emerald-300 border-emerald-300 dark:border-emerald-800'
+                            : ctrl.testStatus === 'Failed'
+                            ? 'bg-red-50 dark:bg-red-950/50 text-red-800 dark:text-red-300 border-red-300 dark:border-red-800'
+                            : 'bg-amber-50 dark:bg-amber-950/50 text-amber-800 dark:text-amber-300 border-amber-300 dark:border-amber-800'
+                        }`}
+                      >
+                        <option value="Passed">Passed</option>
+                        <option value="Failed">Failed</option>
+                        <option value="Pending Test">Pending Test</option>
+                      </select>
+                      <div className="text-[10px] text-slate-500 dark:text-slate-400 mt-0.5">Tested: {ctrl.lastTestDate || 'Today'}</div>
                     </td>
 
                     <td className="px-4 py-4">
@@ -283,6 +301,17 @@ export default function ControlsPage() {
                     </td>
 
                     <td className="px-4 py-4 text-right whitespace-nowrap">
+                      <button
+                        onClick={() => updateControl(ctrl.id, {
+                          testStatus: 'Passed',
+                          lastTestDate: new Date().toISOString().split('T')[0]
+                        })}
+                        className="p-1.5 text-slate-400 hover:text-emerald-600 dark:hover:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 rounded-lg transition-colors cursor-pointer mr-1"
+                        title="Pass Control Test"
+                      >
+                        <CheckCircle2 className="w-4 h-4" />
+                      </button>
+
                       <button
                         onClick={() => deleteControl(ctrl.id)}
                         className="p-1.5 text-slate-400 hover:text-red-600 dark:hover:text-red-400 hover:bg-red-50 dark:hover:bg-red-950/40 rounded-lg transition-colors cursor-pointer"
