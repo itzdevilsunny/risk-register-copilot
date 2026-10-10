@@ -316,26 +316,26 @@ export const KRIMonitoring: React.FC = () => {
 
         {/* Overview Stat Cards */}
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-          <div className="bg-white p-4 rounded-xl border border-slate-200 shadow-2xs">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-slate-200 dark:border-slate-800 shadow-2xs">
             <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">Total Active KRIs</span>
-            <div className="text-2xl font-black text-slate-900 mt-1 font-mono">{kriList.length} Metrics</div>
-            <span className="text-[11px] text-slate-500">Continuous telemetry feed</span>
+            <div className="text-2xl font-black text-slate-900 dark:text-slate-100 mt-1 font-mono">{kriList.length} Metrics</div>
+            <span className="text-[11px] text-slate-500 dark:text-slate-400">Continuous telemetry feed</span>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-amber-200 bg-amber-50/20 shadow-2xs">
-            <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider">Warning Level</span>
-            <div className="text-2xl font-black text-amber-950 mt-1 font-mono">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-amber-200 dark:border-amber-900/60 bg-amber-50/20 dark:bg-amber-950/20 shadow-2xs">
+            <span className="text-[10px] font-bold text-amber-700 dark:text-amber-400 uppercase tracking-wider">Warning Level</span>
+            <div className="text-2xl font-black text-amber-950 dark:text-amber-200 mt-1 font-mono">
               {kriList.filter(k => k.status === 'Warning').length} Indicators
             </div>
-            <span className="text-[11px] text-amber-600 font-medium">Approaching target threshold</span>
+            <span className="text-[11px] text-amber-600 dark:text-amber-400 font-medium">Approaching target threshold</span>
           </div>
 
-          <div className="bg-white p-4 rounded-xl border border-red-200 bg-red-50/20 shadow-2xs">
-            <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider">Breached SLA Triggers</span>
-            <div className="text-2xl font-black text-red-950 mt-1 font-mono">
+          <div className="bg-white dark:bg-slate-900 p-4 rounded-xl border border-red-200 dark:border-red-900/60 bg-red-50/20 dark:bg-red-950/20 shadow-2xs">
+            <span className="text-[10px] font-bold text-red-700 dark:text-red-400 uppercase tracking-wider">Breached SLA Triggers</span>
+            <div className="text-2xl font-black text-red-950 dark:text-red-200 mt-1 font-mono">
               {kriList.filter(k => k.status === 'Breached').length} Critical
             </div>
-            <span className="text-[11px] text-red-600 font-semibold">Auto-escalated to Risk Register</span>
+            <span className="text-[11px] text-red-600 dark:text-red-400 font-semibold">Auto-escalated to Risk Register</span>
           </div>
         </div>
 
@@ -345,9 +345,9 @@ export const KRIMonitoring: React.FC = () => {
             <div 
               key={kri.id}
               onClick={() => setActiveKriDetail(kri)}
-              className={`p-5 rounded-2xl bg-white border transition-all shadow-2xs space-y-3 cursor-pointer group hover:shadow-md ${
-                kri.status === 'Breached' ? 'border-red-300 ring-1 ring-red-200' :
-                kri.status === 'Warning' ? 'border-amber-300' : 'border-slate-200'
+              className={`p-5 rounded-2xl bg-white dark:bg-slate-900 border transition-all shadow-2xs space-y-3 cursor-pointer group hover:shadow-md ${
+                kri.status === 'Breached' ? 'border-red-300 dark:border-red-900 ring-1 ring-red-200 dark:ring-red-950' :
+                kri.status === 'Warning' ? 'border-amber-300 dark:border-amber-900' : 'border-slate-200 dark:border-slate-800'
               }`}
             >
               <div className="flex items-start justify-between gap-3">
@@ -373,30 +373,43 @@ export const KRIMonitoring: React.FC = () => {
               </div>
 
               {/* Current Value Gauge */}
-              <div className="p-3 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-between">
+              <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800/60 border border-slate-100 dark:border-slate-750 flex items-center justify-between">
                 <div>
-                  <span className="text-[10px] font-bold text-slate-400 uppercase">Live Value</span>
-                  <div className="text-xl font-black text-slate-900 font-mono">
-                    {kri.currentValue} <span className="text-xs text-slate-500 font-normal">{kri.unit}</span>
+                  <span className="text-[10px] font-bold text-slate-400 dark:text-slate-400 uppercase">Live Value</span>
+                  <div className="text-xl font-black text-slate-900 dark:text-slate-100 font-mono">
+                    {kri.currentValue} <span className="text-xs text-slate-500 dark:text-slate-400 font-normal">{kri.unit}</span>
                   </div>
                 </div>
 
-                <div className="text-right text-[11px] text-slate-500 space-y-0.5">
-                  <div>Warning Limit: <strong className="text-slate-800 font-mono">{kri.targetThreshold} {kri.unit}</strong></div>
-                  <div>Critical Breach: <strong className="text-red-700 font-mono">{kri.criticalThreshold} {kri.unit}</strong></div>
+                <div className="text-right text-[11px] text-slate-500 dark:text-slate-400 space-y-0.5">
+                  <div>Warning Limit: <strong className="text-slate-800 dark:text-slate-200 font-mono">{kri.targetThreshold} {kri.unit}</strong></div>
+                  <div>Critical Breach: <strong className="text-red-700 dark:text-red-400 font-mono">{kri.criticalThreshold} {kri.unit}</strong></div>
                 </div>
               </div>
 
-              <div className="flex items-center justify-between text-xs pt-1">
-                <span className="text-[10px] text-slate-400">Linked Register Item: <strong className="text-slate-700">{kri.linkedRiskId}</strong></span>
-                <div className="flex items-center gap-1.5" onClick={(e) => e.stopPropagation()}>
+              {/* Inline Quick Telemetry Observation Logger */}
+              <div className="pt-1 flex items-center justify-between gap-2 border-t border-slate-100 dark:border-slate-800" onClick={(e) => e.stopPropagation()}>
+                <span className="text-[10px] text-slate-400 dark:text-slate-500">
+                  Risk: <strong className="text-slate-700 dark:text-slate-300 font-mono">{kri.linkedRiskId}</strong>
+                </span>
+
+                <div className="flex items-center gap-1.5">
+                  <button
+                    type="button"
+                    onClick={() => handleResetMetric(kri.id)}
+                    className="px-2 py-1 text-[10px] font-bold text-slate-600 dark:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-800 rounded-lg border border-slate-200 dark:border-slate-700 transition-colors"
+                    title="Reset to baseline"
+                  >
+                    Reset
+                  </button>
+
                   <Button
                     variant="outline"
                     size="sm"
                     icon={<Zap className="w-3 h-3 text-amber-500" />}
                     onClick={() => handleSimulateSpike(kri.id)}
                   >
-                    Simulate Breach
+                    Spike
                   </Button>
                 </div>
               </div>
