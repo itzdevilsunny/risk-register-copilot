@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useMemo } from 'react';
+import Link from 'next/link';
 import { useRiskContext } from '../../context/RiskContext';
 import { 
   ShieldCheck, 
@@ -11,8 +12,11 @@ import {
   CheckCircle2, 
   Lock, 
   Activity, 
-  BrainCircuit, 
-  UserCheck
+  UserCheck,
+  ChevronDown,
+  ChevronRight,
+  ExternalLink,
+  RotateCcw
 } from 'lucide-react';
 import { Button } from '../../components/ui/Button';
 
@@ -20,14 +24,15 @@ export default function AuditLogsPage() {
   const { auditLogs, risks, addToast } = useRiskContext();
   const [searchQuery, setSearchQuery] = useState('');
   const [filterActionType, setFilterActionType] = useState<string>('All');
+  const [expandedLogId, setExpandedLogId] = useState<string | null>(null);
 
   // Filtered logs
   const filteredLogs = useMemo(() => {
     return auditLogs.filter(log => {
       const q = searchQuery.toLowerCase();
-      const matchSummary = log.changesSummary.toLowerCase().includes(q);
-      const matchActor = log.actorName.toLowerCase().includes(q);
-      const matchRisk = log.riskId.toLowerCase().includes(q);
+      const matchSummary = (log.changesSummary || '').toLowerCase().includes(q);
+      const matchActor = (log.actorName || '').toLowerCase().includes(q);
+      const matchRisk = (log.riskId || '').toLowerCase().includes(q);
       if (searchQuery.trim() !== '' && !matchSummary && !matchActor && !matchRisk) return false;
 
       if (filterActionType !== 'All' && log.actionType !== filterActionType) return false;
@@ -44,7 +49,7 @@ export default function AuditLogsPage() {
       `"${l.actorName}"`,
       `"${l.actorRole}"`,
       l.actionType,
-      `"${l.changesSummary.replace(/"/g, '""')}"`
+      `"${(l.changesSummary || '').replace(/"/g, '""')}"`
     ]);
 
     const csvContent = [headers.join(','), ...rows.map(r => r.join(','))].join('\n');
@@ -58,6 +63,8 @@ export default function AuditLogsPage() {
     document.body.removeChild(link);
     addToast('Audit Log Exported', 'SOC2 CSV compliance report downloaded.', 'success');
   };
+
+  const actionTypes = ['All', 'INSERT', 'UPDATE', 'ACCEPTANCE', 'APPROVAL', 'DELETE'] as const;
 
   return (
     <div className="space-y-6 animate-in fade-in-50 pb-12">
@@ -138,23 +145,29 @@ export default function AuditLogsPage() {
           />
         </div>
 
-        <div className="flex items-center gap-2 w-full md:w-auto">
-          <div className="flex items-center gap-1 text-xs font-semibold text-slate-500 dark:text-slate-400">
-            <Filter className="w-3.5 h-3.5" />
-            <span>Action Type:</span>
-          </div>
-          <select
-            value={filterActionType}
-            onChange={(e) => setFilterActionType(e.target.value)}
-            className="text-xs font-semibold px-2.5 py-1.5 rounded-lg border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 text-slate-800 dark:text-slate-200 cursor-pointer"
-          >
-            <option value="All">All Action Types</option>
-            <option value="INSERT">INSERT</option>
-            <option value="UPDATE">UPDATE</option>
-            <option value="DELETE">DELETE</option>
-            <option value="ACCEPTANCE">ACCEPTANCE</option>
-            <option value="APPROVAL">APPROVAL</option>
-          </select>
+        <div className="flex items-center gap-1.5 w-full md:w-auto flex-wrap">
+          {actionTypes.map(act => (
+            <button
+              key={act}
+              onClick={() => setFilterActionType(act)}
+              className={`px-2.5 py-1 rounded-lg text-xs font-semibold transition-all ${
+                filterActionType === act
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 hover:bg-slate-200 dark:hover:bg-slate-700'
+              }`}
+            >
+              {act}
+            </button>
+          ))}
+          {(searchQuery || filterActionType !== 'All') && (
+            <button
+              onClick={() => { setSearchQuery(''); setFilterActionType('All'); }}
+              className="p-1 text-slate-400 hover:text-slate-600 dark:hover:text-slate-200 transition-colors ml-1"
+              title="Reset Filters"
+            >
+              <RotateCcw className="w-3.5 h-3.5" />
+            </button>
+          )}
         </div>
       </div>
 
@@ -175,51 +188,100 @@ export default function AuditLogsPage() {
               No audit log entries match the selected filters.
             </div>
           ) : (
-            filteredLogs.map((log) => (
-              <div key={log.id} className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-                <div className="flex items-start gap-3">
-                  <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
-                    log.actionType === 'INSERT' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' :
-                    log.actionType === 'ACCEPTANCE' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' :
-                    log.actionType === 'DELETE' ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' :
-                    'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400'
-                  }`}>
-                    {log.actionType === 'INSERT' ? <CheckCircle2 className="w-4 h-4" /> :
-                     log.actionType === 'ACCEPTANCE' ? <ShieldCheck className="w-4 h-4" /> :
-                     <Activity className="w-4 h-4" />}
-                  </div>
+            filteredLogs.map((log) => {
+              const isExpanded = expandedLogId === log.id;
+              const hasDiff = log.oldData || log.newData;
 
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
-                        {log.riskId}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
-                        log.actionType === 'INSERT' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' :
-                        log.actionType === 'ACCEPTANCE' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+              return (
+                <div key={log.id} className="p-4 hover:bg-slate-50/80 dark:hover:bg-slate-800/40 transition-colors">
+                  <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+                    <div className="flex items-start gap-3">
+                      <div className={`w-8 h-8 rounded-lg flex items-center justify-center shrink-0 mt-0.5 ${
+                        log.actionType === 'INSERT' ? 'bg-emerald-100 dark:bg-emerald-950/50 text-emerald-700 dark:text-emerald-400' :
+                        log.actionType === 'ACCEPTANCE' ? 'bg-amber-100 dark:bg-amber-950/50 text-amber-700 dark:text-amber-400' :
+                        log.actionType === 'DELETE' ? 'bg-red-100 dark:bg-red-950/50 text-red-700 dark:text-red-400' :
+                        'bg-indigo-100 dark:bg-indigo-950/50 text-indigo-700 dark:text-indigo-400'
                       }`}>
-                        {log.actionType}
-                      </span>
-                    </div>
-                    <p className="text-xs text-slate-800 dark:text-slate-200 mt-1 font-semibold leading-relaxed">
-                      {log.changesSummary}
-                    </p>
-                  </div>
-                </div>
+                        {log.actionType === 'INSERT' ? <CheckCircle2 className="w-4 h-4" /> :
+                         log.actionType === 'ACCEPTANCE' ? <ShieldCheck className="w-4 h-4" /> :
+                         <Activity className="w-4 h-4" />}
+                      </div>
 
-                <div className="flex sm:flex-col items-center sm:items-end justify-between text-right shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800">
-                  <div className="flex items-center gap-1 text-xs font-semibold text-slate-800 dark:text-slate-200">
-                    <UserCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
-                    <span>{log.actorName}</span>
-                    <span className="text-[10px] text-slate-400 dark:text-slate-500">({log.actorRole})</span>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          {log.riskId && log.riskId.startsWith('RSK-') ? (
+                            <Link 
+                              href={`/risk/${log.riskId}`}
+                              className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-indigo-600 dark:text-indigo-400 hover:underline border border-slate-200 dark:border-slate-700 inline-flex items-center gap-0.5"
+                              title={`View Risk details for ${log.riskId}`}
+                            >
+                              <span>{log.riskId}</span>
+                              <ExternalLink className="w-2.5 h-2.5" />
+                            </Link>
+                          ) : (
+                            <span className="font-mono text-[10px] font-bold px-1.5 py-0.5 rounded bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-slate-700">
+                              {log.riskId}
+                            </span>
+                          )}
+                          <span className={`px-2 py-0.5 rounded text-[10px] font-bold ${
+                            log.actionType === 'INSERT' ? 'bg-emerald-50 dark:bg-emerald-950/40 text-emerald-700 dark:text-emerald-400' :
+                            log.actionType === 'ACCEPTANCE' ? 'bg-amber-50 dark:bg-amber-950/40 text-amber-700 dark:text-amber-400' : 'bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300'
+                          }`}>
+                            {log.actionType}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-800 dark:text-slate-200 mt-1 font-semibold leading-relaxed">
+                          {log.changesSummary}
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex sm:flex-col items-center sm:items-end justify-between text-right shrink-0 border-t sm:border-t-0 pt-2 sm:pt-0 border-slate-100 dark:border-slate-800 gap-1">
+                      <div className="flex items-center gap-1 text-xs font-semibold text-slate-800 dark:text-slate-200">
+                        <UserCheck className="w-3.5 h-3.5 text-indigo-600 dark:text-indigo-400" />
+                        <span>{log.actorName}</span>
+                        <span className="text-[10px] text-slate-400 dark:text-slate-500">({log.actorRole})</span>
+                      </div>
+                      <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1">
+                        <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
+                        {new Date(log.timestamp).toLocaleString()}
+                      </span>
+                      {hasDiff && (
+                        <button
+                          onClick={() => setExpandedLogId(isExpanded ? null : log.id)}
+                          className="text-[10px] text-indigo-600 dark:text-indigo-400 font-bold inline-flex items-center gap-0.5 hover:underline mt-1 cursor-pointer"
+                        >
+                          {isExpanded ? <ChevronDown className="w-3 h-3" /> : <ChevronRight className="w-3 h-3" />}
+                          <span>{isExpanded ? 'Hide Payload' : 'Inspect Payload'}</span>
+                        </button>
+                      )}
+                    </div>
                   </div>
-                  <span className="text-[10px] text-slate-400 dark:text-slate-500 font-medium flex items-center gap-1 mt-0.5">
-                    <Clock className="w-3 h-3 text-slate-400 dark:text-slate-500" />
-                    {new Date(log.timestamp).toLocaleString()}
-                  </span>
+
+                  {/* Expandable Payload Diff */}
+                  {isExpanded && hasDiff && (
+                    <div className="mt-3 pt-3 border-t border-slate-100 dark:border-slate-800 text-[11px] grid grid-cols-1 md:grid-cols-2 gap-3">
+                      {log.oldData && (
+                        <div className="bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-mono">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Previous State</span>
+                          <pre className="text-slate-700 dark:text-slate-300 overflow-x-auto text-[10px]">
+                            {JSON.stringify(log.oldData, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                      {log.newData && (
+                        <div className="bg-slate-50 dark:bg-slate-800/80 p-2.5 rounded-xl border border-slate-200 dark:border-slate-700 font-mono">
+                          <span className="text-[10px] font-bold text-slate-400 uppercase block mb-1">Updated State</span>
+                          <pre className="text-slate-700 dark:text-slate-300 overflow-x-auto text-[10px]">
+                            {JSON.stringify(log.newData, null, 2)}
+                          </pre>
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
-              </div>
-            ))
+              );
+            })
           )}
         </div>
       </div>
