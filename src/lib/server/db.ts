@@ -639,6 +639,29 @@ export function createEvidence(input: Omit<EvidenceRecord, 'id' | 'uploadTimesta
   return newEvidence;
 }
 
+export function updateEvidence(id: string, updates: Partial<EvidenceRecord>): EvidenceRecord | null {
+  const db = getDatabase();
+  const index = db.evidence.findIndex(e => e.id.toLowerCase() === id.toLowerCase());
+  if (index === -1) return null;
+
+  db.evidence[index] = {
+    ...db.evidence[index],
+    ...updates
+  };
+
+  logAuditEvent({
+    riskId: db.evidence[index].linkedRiskId || 'SYSTEM',
+    actionType: 'UPDATE',
+    actorName: updates.verifierName || 'Auditor',
+    actorRole: 'Compliance Lead',
+    changesSummary: `Updated Evidence ${id}: ${Object.keys(updates).join(', ')}`,
+    newData: db.evidence[index]
+  });
+
+  saveDatabase(db);
+  return db.evidence[index];
+}
+
 export function deleteEvidence(id: string): boolean {
   const db = getDatabase();
   const index = db.evidence.findIndex(e => e.id.toLowerCase() === id.toLowerCase());

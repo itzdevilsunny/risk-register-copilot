@@ -99,6 +99,7 @@ interface RiskContextType {
   deleteAction: (id: string) => Promise<void>;
 
   addEvidence: (evidence: Omit<EvidenceRecord, 'id' | 'uploadTimestamp'>) => Promise<EvidenceRecord>;
+  updateEvidence: (id: string, updates: Partial<EvidenceRecord>) => Promise<void>;
   deleteEvidence: (id: string) => Promise<void>;
 
   addKRI: (kri: Omit<KeyRiskIndicator, 'id' | 'lastUpdated' | 'observations'>) => Promise<KeyRiskIndicator>;
@@ -727,6 +728,20 @@ export const RiskProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return fallback;
   };
 
+  const updateEvidence = async (id: string, updates: Partial<EvidenceRecord>) => {
+    setEvidence(prev => prev.map(e => e.id === id ? { ...e, ...updates } : e));
+    addToast('Evidence Updated', `Document ${id} updated.`, 'info');
+    try {
+      await fetch(`/api/evidence/${id}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updates)
+      });
+    } catch (e) {
+      console.warn('PATCH /api/evidence error:', e);
+    }
+  };
+
   const deleteEvidence = async (id: string) => {
     setEvidence(prev => prev.filter(e => e.id !== id));
     addToast('Evidence Removed', `Document ${id} deleted.`, 'warning');
@@ -1074,6 +1089,7 @@ export const RiskProvider: React.FC<{ children: React.ReactNode }> = ({ children
         updateAction,
         deleteAction,
         addEvidence,
+        updateEvidence,
         deleteEvidence,
         addKRI,
         recordKRIObservation,
