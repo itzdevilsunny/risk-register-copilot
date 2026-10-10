@@ -284,13 +284,26 @@ export default function ActionsPage() {
 
                     <td className="px-4 py-4 whitespace-nowrap">
                       <div className="flex items-center gap-2">
-                        <div className="w-24 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
+                        <div className="w-20 bg-slate-100 dark:bg-slate-800 h-2 rounded-full overflow-hidden">
                           <div 
-                            className={`h-full rounded-full ${act.progressPct === 100 ? 'bg-emerald-500' : 'bg-indigo-600 dark:bg-indigo-500'}`}
+                            className={`h-full rounded-full transition-all ${act.progressPct === 100 ? 'bg-emerald-500' : 'bg-indigo-600 dark:bg-indigo-500'}`}
                             style={{ width: `${act.progressPct}%` }}
                           />
                         </div>
-                        <span className="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300">{act.progressPct}%</span>
+                        <span className="font-mono text-[11px] font-bold text-slate-700 dark:text-slate-300 w-8">{act.progressPct}%</span>
+                        {act.status !== 'Completed' && (
+                          <button
+                            onClick={() => {
+                              const nextProg = Math.min(100, (act.progressPct || 0) + 25);
+                              const nextStatus = nextProg === 100 ? 'Completed' : act.status;
+                              updateAction(act.id, { progressPct: nextProg, status: nextStatus as any });
+                            }}
+                            className="px-1.5 py-0.5 text-[10px] font-bold bg-slate-100 dark:bg-slate-800 hover:bg-indigo-50 dark:hover:bg-indigo-950/60 text-slate-700 dark:text-slate-300 hover:text-indigo-600 rounded transition-colors"
+                            title="Increment progress by +25%"
+                          >
+                            +25%
+                          </button>
+                        )}
                       </div>
                     </td>
 
@@ -318,7 +331,16 @@ export default function ActionsPage() {
                     </td>
 
                     <td className="px-4 py-4 text-right whitespace-nowrap">
-                      <div className="flex items-center justify-end gap-2">
+                      <div className="flex items-center justify-end gap-1.5">
+                        {act.status !== 'Completed' && (
+                          <button
+                            onClick={() => updateAction(act.id, { status: 'Completed', progressPct: 100 })}
+                            className="p-1.5 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-50 dark:hover:bg-emerald-950/50 rounded-lg transition-colors cursor-pointer"
+                            title="Mark 100% Completed"
+                          >
+                            <CheckCircle2 className="w-4 h-4" />
+                          </button>
+                        )}
                         {isOverdue && act.status !== 'Completed' && (
                           <button
                             onClick={() => handleEscalateAction(act)}

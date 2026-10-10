@@ -39,10 +39,10 @@ export default function ApprovalsPage() {
     if (statusFilter !== 'all' && req.status !== statusFilter) return false;
     if (searchQuery.trim()) {
       const q = searchQuery.toLowerCase();
-      const matchTitle = req.riskTitle.toLowerCase().includes(q);
-      const matchId = req.riskId.toLowerCase().includes(q);
-      const matchReq = req.requestedBy.toLowerCase().includes(q);
-      const matchReason = req.reason.toLowerCase().includes(q);
+      const matchTitle = (req.riskTitle || '').toLowerCase().includes(q);
+      const matchId = (req.riskId || '').toLowerCase().includes(q);
+      const matchReq = (req.requestedBy || '').toLowerCase().includes(q);
+      const matchReason = (req.reason || '').toLowerCase().includes(q);
       if (!matchTitle && !matchId && !matchReq && !matchReason) return false;
     }
     return true;
@@ -183,7 +183,8 @@ export default function ApprovalsPage() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {pendingApprovals.map((req) => {
                   const targetRisk = risks.find(r => r.id === req.riskId);
-                  const isAboveAppetite = targetRisk ? (targetRisk.aboveAppetite || targetRisk.residualScore > 12) : req.residualScore > 12;
+                  const residual = targetRisk?.residualScore ?? req.residualScore ?? 12;
+                  const isAboveAppetite = targetRisk?.aboveAppetite ?? (residual > 12);
 
                   return (
                     <div 
