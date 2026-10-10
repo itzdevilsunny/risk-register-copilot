@@ -85,7 +85,7 @@ export const RiskFilters: React.FC = () => {
           </div>
 
           {/* Sort & Export Buttons */}
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2">
             {/* Sort By */}
             <select
               value={filterState.sortBy}
@@ -154,7 +154,7 @@ export const RiskFilters: React.FC = () => {
         </span>
 
         {/* Severity Pills */}
-        <div className="flex items-center gap-1">
+        <div className="flex flex-wrap items-center gap-1">
           {severities.map(sev => {
             const isSelected = filterState.severity === sev;
             return (

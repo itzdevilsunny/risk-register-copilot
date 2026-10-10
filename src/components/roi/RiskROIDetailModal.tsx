@@ -98,7 +98,7 @@ export const RiskROIDetailModal: React.FC<RiskROIDetailModalProps> = ({
         {/* Content */}
         <div className="p-6 overflow-y-auto space-y-6 flex-1 text-xs">
           {/* ROI Cards Grid */}
-          <div className="grid grid-cols-4 gap-3">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
             <div className="p-3 bg-slate-50 border border-slate-200 rounded-xl text-center">
               <span className="text-[10px] font-bold text-slate-400 uppercase">Potential Loss</span>
               <div className="text-lg font-black text-slate-900 font-mono mt-0.5">

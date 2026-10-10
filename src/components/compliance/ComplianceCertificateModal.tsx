@@ -112,28 +112,28 @@ export const ComplianceCertificateModal: React.FC<ComplianceCertificateModalProp
           </div>
 
           {/* Score Badge Grid */}
-          <div className="grid grid-cols-4 gap-4 p-6 bg-white rounded-2xl border border-slate-200 shadow-2xs">
-            <div className="text-center border-r border-slate-100 pr-2">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 p-4 sm:p-6 bg-white rounded-2xl border border-slate-200 shadow-2xs">
+            <div className="text-center sm:border-r border-slate-100 pr-0 sm:pr-2">
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Overall Health</span>
-              <div className="text-3xl font-black text-indigo-600 font-mono mt-1">{healthScore}%</div>
+              <div className="text-2xl sm:text-3xl font-black text-indigo-600 font-mono mt-1">{healthScore}%</div>
               <span className="text-[10px] text-emerald-600 font-semibold">High Readiness</span>
             </div>
 
-            <div className="text-center border-r border-slate-100 px-2">
+            <div className="text-center sm:border-r border-slate-100 px-0 sm:px-2">
               <span className="text-[10px] font-bold text-emerald-700 uppercase tracking-wider block">Compliant</span>
-              <div className="text-3xl font-black text-emerald-950 font-mono mt-1">{compliantCount}</div>
+              <div className="text-2xl sm:text-3xl font-black text-emerald-950 font-mono mt-1">{compliantCount}</div>
               <span className="text-[10px] text-emerald-600 font-medium">Controls Aligned</span>
             </div>
 
-            <div className="text-center border-r border-slate-100 px-2">
+            <div className="text-center sm:border-r border-slate-100 px-0 sm:px-2">
               <span className="text-[10px] font-bold text-amber-700 uppercase tracking-wider block">Warnings</span>
-              <div className="text-3xl font-black text-amber-950 font-mono mt-1">{warningCount}</div>
+              <div className="text-2xl sm:text-3xl font-black text-amber-950 font-mono mt-1">{warningCount}</div>
               <span className="text-[10px] text-amber-600 font-medium">Mitigations Active</span>
             </div>
 
-            <div className="text-center pl-2">
+            <div className="text-center pl-0 sm:pl-2">
               <span className="text-[10px] font-bold text-red-700 uppercase tracking-wider block">Deficient</span>
-              <div className="text-3xl font-black text-red-950 font-mono mt-1">{nonCompliantCount}</div>
+              <div className="text-2xl sm:text-3xl font-black text-red-950 font-mono mt-1">{nonCompliantCount}</div>
               <span className="text-[10px] text-red-600 font-medium">Action Items</span>
             </div>
           </div>
@@ -168,7 +168,7 @@ export const ComplianceCertificateModal: React.FC<ComplianceCertificateModalProp
           </div>
 
           {/* Signatures & Security Seals */}
-          <div className="pt-8 border-t border-slate-200 grid grid-cols-2 gap-8 items-end">
+          <div className="pt-8 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 items-end">
             <div className="space-y-3">
               <div className="font-mono text-[10px] text-slate-400 break-all bg-slate-100 p-2.5 rounded-lg border border-slate-200">
                 <span className="font-bold text-slate-600 block mb-0.5">Cryptographic Verification Hash:</span>
@@ -179,8 +179,8 @@ export const ComplianceCertificateModal: React.FC<ComplianceCertificateModalProp
               </p>
             </div>
 
-            <div className="text-right space-y-6">
-              <div className="inline-block border-b-2 border-slate-900 pb-1 px-8">
+            <div className="text-left sm:text-right space-y-4 sm:space-y-6">
+              <div className="inline-block border-b-2 border-slate-900 pb-1 px-4 sm:px-8">
                 <span className="font-serif italic text-lg text-slate-800 font-bold block">Sunny Prasad</span>
               </div>
               <div>

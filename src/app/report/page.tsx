@@ -87,8 +87,8 @@ export default function ReportPage() {
           </p>
         </div>
 
-        <div className="flex items-center gap-3">
-          <div className="flex items-center p-1 bg-slate-100 rounded-lg text-xs font-bold">
+        <div className="flex flex-wrap items-center gap-2 sm:gap-3 w-full sm:w-auto">
+          <div className="flex items-center p-1 bg-slate-100 rounded-lg text-xs font-bold w-full sm:w-auto justify-center">
             <button
               onClick={() => setReportType('executive')}
               className={`px-3 py-1.5 rounded-md transition-colors ${
@@ -131,19 +131,19 @@ export default function ReportPage() {
       {/* Printable Report Document Body */}
       <div className="space-y-6">
         {/* Document Header */}
-        <div className="border-b-2 border-slate-900 pb-4 flex justify-between items-start">
+        <div className="border-b-2 border-slate-900 pb-4 flex flex-col sm:flex-row justify-between items-start gap-3">
           <div>
             <div className="text-xs font-bold uppercase tracking-wider text-indigo-600 mb-0.5">
               MNB RESEARCH • BUSINESS OPERATIONS & TECHNOLOGY ADVISORY
             </div>
-            <h1 className="text-3xl font-black text-slate-950 uppercase tracking-tight">
+            <h1 className="text-2xl sm:text-3xl font-black text-slate-950 uppercase tracking-tight">
               {reportType === 'executive' ? 'Executive Risk & Control Report' : 'Board Risk Governance Briefing'}
             </h1>
             <p className="text-sm font-semibold text-slate-600 mt-1">
               Organization: {workspaceSettings?.workspaceName || 'MNB Research Business Operations'}
             </p>
           </div>
-          <div className="text-right text-xs text-slate-500 font-mono space-y-1">
+          <div className="sm:text-right text-xs text-slate-500 font-mono space-y-1">
             <div className="font-bold text-red-600 uppercase bg-red-50 px-2 py-0.5 border border-red-200 inline-block rounded">
               STRICTLY CONFIDENTIAL
             </div>
@@ -153,7 +153,7 @@ export default function ReportPage() {
         </div>
 
         {/* 4 Key Performance Indicators */}
-        <div className="grid grid-cols-4 gap-4">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3 sm:gap-4">
           <div className="p-3.5 rounded-lg border border-slate-300 bg-slate-50">
             <div className="text-xs font-bold text-slate-500 uppercase">Total Risk Register</div>
             <div className="text-2xl font-black text-slate-900 mt-1">{totalRisks} Records</div>
@@ -231,55 +231,57 @@ export default function ReportPage() {
             <span className="text-xs font-bold text-red-600">{aboveAppetiteRisks.length} Action Items</span>
           </h2>
 
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b-2 border-slate-900 text-slate-700 font-bold uppercase text-[11px]">
-                <th className="py-2 pr-2">ID</th>
-                <th className="py-2 px-2">Risk Title & Process</th>
-                <th className="py-2 px-2">Inherent</th>
-                <th className="py-2 px-2">Residual</th>
-                <th className="py-2 px-2">Treatment</th>
-                <th className="py-2 px-2">Owner</th>
-                <th className="py-2 pl-2 text-right">Exposure</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {aboveAppetiteRisks.map((r, idx) => (
-                <tr key={`${r.id}-${idx}`} className="align-top">
-                  <td className="py-2.5 pr-2 font-mono font-bold text-slate-900">{r.id}</td>
-                  <td className="py-2.5 px-2">
-                    <div className="font-bold text-slate-900">{r.title}</div>
-                    <div className="text-[11px] text-slate-600 mt-0.5">{r.affectedProcess || r.description}</div>
-                  </td>
-                  <td className="py-2.5 px-2">
-                    <span className="px-2 py-0.5 bg-red-100 text-red-800 font-bold text-[10px] rounded">
-                      {r.inherentScore} ({r.inherentProbability}×{r.inherentImpact})
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-2">
-                    <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded">
-                      {r.residualScore} ({r.residualProbability}×{r.residualImpact})
-                    </span>
-                  </td>
-                  <td className="py-2.5 px-2 font-semibold text-slate-700">{r.treatmentStrategy || 'Mitigate'}</td>
-                  <td className="py-2.5 px-2 text-slate-800 font-medium">
-                    {r.ownerName}
-                    <div className="text-[10px] text-slate-500">{r.ownerRole}</div>
-                  </td>
-                  <td className="py-2.5 pl-2 text-right font-mono font-bold text-slate-900">
-                    {formatCurrency(r.estimatedImpactUsd || r.score * 2500)}
-                  </td>
+          <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+            <table className="w-full text-left text-xs border-collapse min-w-[620px]">
+              <thead>
+                <tr className="border-b-2 border-slate-900 text-slate-700 font-bold uppercase text-[11px]">
+                  <th className="py-2 pr-2">ID</th>
+                  <th className="py-2 px-2">Risk Title & Process</th>
+                  <th className="py-2 px-2">Inherent</th>
+                  <th className="py-2 px-2">Residual</th>
+                  <th className="py-2 px-2">Treatment</th>
+                  <th className="py-2 px-2">Owner</th>
+                  <th className="py-2 pl-2 text-right">Exposure</th>
                 </tr>
-              ))}
-              {aboveAppetiteRisks.length === 0 && (
-                <tr>
-                  <td colSpan={7} className="py-4 text-center text-slate-500 italic">
-                    All residual risk scores are currently within the approved organizational appetite limit.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {aboveAppetiteRisks.map((r, idx) => (
+                  <tr key={`${r.id}-${idx}`} className="align-top">
+                    <td className="py-2.5 pr-2 font-mono font-bold text-slate-900">{r.id}</td>
+                    <td className="py-2.5 px-2">
+                      <div className="font-bold text-slate-900">{r.title}</div>
+                      <div className="text-[11px] text-slate-600 mt-0.5">{r.affectedProcess || r.description}</div>
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <span className="px-2 py-0.5 bg-red-100 text-red-800 font-bold text-[10px] rounded">
+                        {r.inherentScore} ({r.inherentProbability}×{r.inherentImpact})
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-2">
+                      <span className="px-2 py-0.5 bg-amber-100 text-amber-800 font-bold text-[10px] rounded">
+                        {r.residualScore} ({r.residualProbability}×{r.residualImpact})
+                      </span>
+                    </td>
+                    <td className="py-2.5 px-2 font-semibold text-slate-700">{r.treatmentStrategy || 'Mitigate'}</td>
+                    <td className="py-2.5 px-2 text-slate-800 font-medium">
+                      {r.ownerName}
+                      <div className="text-[10px] text-slate-500">{r.ownerRole}</div>
+                    </td>
+                    <td className="py-2.5 pl-2 text-right font-mono font-bold text-slate-900">
+                      {formatCurrency(r.estimatedImpactUsd || r.score * 2500)}
+                    </td>
+                  </tr>
+                ))}
+                {aboveAppetiteRisks.length === 0 && (
+                  <tr>
+                    <td colSpan={7} className="py-4 text-center text-slate-500 italic">
+                      All residual risk scores are currently within the approved organizational appetite limit.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Overdue Mitigation Actions Table */}
@@ -289,35 +291,37 @@ export default function ReportPage() {
             <span className="text-xs font-bold text-red-600">{overdueActions.length} Overdue SLA</span>
           </h2>
 
-          <table className="w-full text-left text-xs border-collapse">
-            <thead>
-              <tr className="border-b-2 border-slate-900 text-slate-700 font-bold uppercase text-[11px]">
-                <th className="py-2 pr-2">Action Title</th>
-                <th className="py-2 px-2">Linked Risk</th>
-                <th className="py-2 px-2">Assignee</th>
-                <th className="py-2 px-2">Target Due Date</th>
-                <th className="py-2 pl-2 text-right">Progress</th>
-              </tr>
-            </thead>
-            <tbody className="divide-y divide-slate-200">
-              {overdueActions.map(a => (
-                <tr key={a.id} className="align-top">
-                  <td className="py-2.5 pr-2 font-bold text-slate-900">{a.title}</td>
-                  <td className="py-2.5 px-2 font-mono font-semibold text-indigo-700">{a.riskId}</td>
-                  <td className="py-2.5 px-2 text-slate-800">{a.assignedOwnerName}</td>
-                  <td className="py-2.5 px-2 font-bold text-red-600">{a.dueDate} (Overdue)</td>
-                  <td className="py-2.5 pl-2 text-right font-mono font-bold text-slate-900">{a.progressPct}%</td>
+          <div className="overflow-x-auto -mx-2 px-2 sm:mx-0 sm:px-0">
+            <table className="w-full text-left text-xs border-collapse min-w-[540px]">
+              <thead>
+                <tr className="border-b-2 border-slate-900 text-slate-700 font-bold uppercase text-[11px]">
+                  <th className="py-2 pr-2">Action Title</th>
+                  <th className="py-2 px-2">Linked Risk</th>
+                  <th className="py-2 px-2">Assignee</th>
+                  <th className="py-2 px-2">Target Due Date</th>
+                  <th className="py-2 pl-2 text-right">Progress</th>
                 </tr>
-              ))}
-              {overdueActions.length === 0 && (
-                <tr>
-                  <td colSpan={5} className="py-4 text-center text-slate-500 italic">
-                    All assigned mitigation tasks are within target SLA due dates.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+              </thead>
+              <tbody className="divide-y divide-slate-200">
+                {overdueActions.map(a => (
+                  <tr key={a.id} className="align-top">
+                    <td className="py-2.5 pr-2 font-bold text-slate-900">{a.title}</td>
+                    <td className="py-2.5 px-2 font-mono font-semibold text-indigo-700">{a.riskId}</td>
+                    <td className="py-2.5 px-2 text-slate-800">{a.assignedOwnerName}</td>
+                    <td className="py-2.5 px-2 font-bold text-red-600">{a.dueDate} (Overdue)</td>
+                    <td className="py-2.5 pl-2 text-right font-mono font-bold text-slate-900">{a.progressPct}%</td>
+                  </tr>
+                ))}
+                {overdueActions.length === 0 && (
+                  <tr>
+                    <td colSpan={5} className="py-4 text-center text-slate-500 italic">
+                      All assigned mitigation tasks are within target SLA due dates.
+                    </td>
+                  </tr>
+                )}
+              </tbody>
+            </table>
+          </div>
         </div>
 
         {/* Formal Governance Sign-off Block */}
@@ -326,7 +330,7 @@ export default function ReportPage() {
             3. Operational Governance Sign-off & Board Approval Block
           </h2>
 
-          <div className="grid grid-cols-2 gap-8 text-xs pt-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 text-xs pt-4">
             <div className="border-t border-slate-400 pt-2 space-y-1">
               <div className="font-bold text-slate-900">Sunny Prasad</div>
               <div className="text-slate-500">Business Operations Intern & Lead Risk Assessor</div>

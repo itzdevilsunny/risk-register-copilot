@@ -186,7 +186,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar, onOpenComma
             </button>
 
             {showProjectDropdown && (
-              <div className="absolute left-0 mt-1.5 w-68 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover py-1.5 z-50 animate-in fade-in-50 zoom-in-95">
+              <div className="absolute left-0 mt-1.5 w-[calc(100vw-2rem)] max-w-xs sm:w-68 rounded-xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover py-1.5 z-50 animate-in fade-in-50 zoom-in-95">
                 <div className="px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider text-slate-400 dark:text-slate-500">
                   MNB Research Workspaces
                 </div>
@@ -333,7 +333,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar, onOpenComma
             </button>
 
             {showNotifications && (
-              <div className="absolute right-0 mt-1.5 w-84 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover py-2 z-50 animate-in fade-in-50 zoom-in-95">
+              <div className="absolute right-0 mt-1.5 w-[calc(100vw-2rem)] max-w-sm sm:w-84 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover py-2 z-50 animate-in fade-in-50 zoom-in-95">
                 <div className="px-4 py-2.5 flex items-center justify-between border-b border-slate-100 dark:border-slate-800">
                   <div className="flex items-center gap-2">
                     <ShieldCheck className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
@@ -490,7 +490,7 @@ export const Header: React.FC<HeaderProps> = ({ onOpenMobileSidebar, onOpenComma
 
             {/* User Account Dropdown Menu */}
             {showUserMenu && (
-              <div className="absolute right-0 mt-2 w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover p-2 z-50 animate-in fade-in-50 zoom-in-95 text-xs">
+              <div className="absolute right-0 mt-2 w-[calc(100vw-2rem)] max-w-xs sm:w-64 rounded-2xl bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-popover p-2 z-50 animate-in fade-in-50 zoom-in-95 text-xs">
                 <div className="p-3 rounded-xl bg-slate-50 dark:bg-slate-800 border border-slate-100 dark:border-slate-700 mb-2">
                   <div className="font-bold text-slate-900 dark:text-slate-100">{currentUser.name}</div>
                   <div className="text-[11px] text-indigo-600 dark:text-indigo-400 font-semibold">{currentUser.role}</div>

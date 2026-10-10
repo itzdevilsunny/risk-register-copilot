@@ -102,6 +102,18 @@ export const CopilotChatDrawer: React.FC = () => {
     }
   ]);
 
+  // Mobile viewport detection
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 640);
+    };
+    handleResize();
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
   // Draggable position state for circular launcher button
   const [position, setPosition] = useState<{ x: number; y: number } | null>(null);
   const [isDragging, setIsDragging] = useState(false);
@@ -120,22 +132,27 @@ export const CopilotChatDrawer: React.FC = () => {
   // Initialize positions after mount
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setPosition({
-        x: window.innerWidth - 68,
-        y: window.innerHeight - 68
-      });
+      const mobile = window.innerWidth < 640;
+      setIsMobile(mobile);
+      if (!mobile) {
+        setPosition({
+          x: window.innerWidth - 68,
+          y: window.innerHeight - 68
+        });
 
-      const winW = isExpanded ? 540 : 420;
-      const winH = isExpanded ? 640 : 540;
-      setWindowPosition({
-        x: Math.max(16, window.innerWidth - winW - 24),
-        y: Math.max(16, window.innerHeight - winH - 76)
-      });
+        const winW = isExpanded ? 540 : 420;
+        const winH = isExpanded ? 640 : 540;
+        setWindowPosition({
+          x: Math.max(16, window.innerWidth - winW - 24),
+          y: Math.max(16, window.innerHeight - winH - 76)
+        });
+      }
     }
   }, [isExpanded]);
 
   // Handle Button Dragging
   const handleMouseDown = (e: React.MouseEvent) => {
+    if (isMobile) return;
     setIsDragging(true);
     hasDragged.current = false;
     dragStartPos.current = { x: e.clientX, y: e.clientY };
@@ -145,6 +162,7 @@ export const CopilotChatDrawer: React.FC = () => {
   };
 
   const handleTouchStart = (e: React.TouchEvent) => {
+    if (isMobile) return;
     if (e.touches.length === 1) {
       setIsDragging(true);
       hasDragged.current = false;
@@ -157,6 +175,7 @@ export const CopilotChatDrawer: React.FC = () => {
 
   // Handle Window Header Dragging
   const handleWindowMouseDown = (e: React.MouseEvent) => {
+    if (isMobile) return;
     // Only drag when clicking header area, ignore buttons
     if ((e.target as HTMLElement).closest('button, input, textarea, a')) return;
     setIsDraggingWindow(true);
@@ -176,6 +195,7 @@ export const CopilotChatDrawer: React.FC = () => {
   };
 
   const handleWindowTouchStart = (e: React.TouchEvent) => {
+    if (isMobile) return;
     if (e.touches.length === 1) {
       if ((e.target as HTMLElement).closest('button, input, textarea, a')) return;
       setIsDraggingWindow(true);
@@ -529,8 +549,8 @@ export const CopilotChatDrawer: React.FC = () => {
 
       {/* Small Round Draggable Trigger Button */}
       <div 
-        className="fixed z-50 select-none touch-none"
-        style={{
+        className={`fixed z-50 select-none touch-none ${isMobile ? 'bottom-4 right-4' : ''}`}
+        style={isMobile ? undefined : {
           left: position ? `${position.x}px` : undefined,
           top: position ? `${position.y}px` : undefined,
           right: position ? undefined : '24px',
@@ -558,25 +578,31 @@ export const CopilotChatDrawer: React.FC = () => {
         </button>
       </div>
 
-      {/* Floating Copilot Chat Drawer Window (Freely Draggable Anywhere) */}
+      {/* Floating Copilot Chat Drawer Window (Clamped on Mobile) */}
       {isCopilotOpen && (
         <div 
-          className={`fixed z-50 bg-slate-900 text-white rounded-3xl shadow-2xl border border-indigo-900/60 overflow-hidden flex flex-col transition-[width,height] duration-200 animate-in slide-in-from-bottom-5 ${
-            isExpanded ? 'w-[calc(100vw-2rem)] sm:w-[540px] h-[640px]' : 'w-[calc(100vw-2rem)] sm:w-[420px] h-[540px]'
+          className={`fixed z-50 bg-slate-900 text-white rounded-2xl sm:rounded-3xl shadow-2xl border border-indigo-900/60 overflow-hidden flex flex-col transition-[width,height] duration-200 animate-in slide-in-from-bottom-5 ${
+            isMobile
+              ? 'inset-x-2 bottom-3 max-h-[82dvh] h-[520px] w-auto max-w-[calc(100vw-1rem)] mx-auto'
+              : isExpanded 
+                ? 'w-[540px] h-[640px]' 
+                : 'w-[420px] h-[540px]'
           } ${isDraggingWindow ? 'ring-2 ring-indigo-500 shadow-indigo-900/40 select-none' : ''}`}
-          style={{
+          style={isMobile ? undefined : {
             left: windowPosition ? `${windowPosition.x}px` : undefined,
             top: windowPosition ? `${windowPosition.y}px` : undefined,
             right: windowPosition ? undefined : '24px',
             bottom: windowPosition ? undefined : '80px'
           }}
         >
-          {/* Header - Drag Handle */}
+          {/* Header - Drag Handle (Desktop) / Header (Mobile) */}
           <div 
             onMouseDown={handleWindowMouseDown}
             onTouchStart={handleWindowTouchStart}
-            className="p-3.5 bg-slate-950 border-b border-indigo-900/40 flex items-center justify-between cursor-grab active:cursor-grabbing select-none group"
-            title="Click and drag to move window anywhere on screen"
+            className={`p-3.5 bg-slate-950 border-b border-indigo-900/40 flex items-center justify-between select-none group ${
+              isMobile ? 'cursor-default' : 'cursor-grab active:cursor-grabbing'
+            }`}
+            title={isMobile ? 'Enterprise Risk Copilot' : 'Click and drag to move window anywhere on screen'}
           >
             <div className="flex items-center gap-2.5 pointer-events-none">
               <div className="w-8 h-8 rounded-xl bg-indigo-600/30 text-indigo-400 flex items-center justify-center border border-indigo-500/30">
@@ -591,13 +617,13 @@ export const CopilotChatDrawer: React.FC = () => {
                 </h3>
                 <p className="text-[10px] text-slate-400 flex items-center gap-1">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-                  Groq Qwen (qwen3.8-27b) • Drag to Move
+                  Groq Qwen (qwen3.8-27b) {!isMobile && '• Drag to Move'}
                 </p>
                 {activeRisk && (
                   <div className="flex items-center gap-1.5 px-2 py-0.5 mt-1 rounded-md bg-indigo-950/80 border border-indigo-700/60 text-[9px] text-indigo-200">
                     <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
                     <span className="font-bold text-white">{activeRisk.id}:</span>
-                    <span className="truncate max-w-[180px]">{activeRisk.title}</span>
+                    <span className="truncate max-w-[140px] sm:max-w-[180px]">{activeRisk.title}</span>
                   </div>
                 )}
               </div>

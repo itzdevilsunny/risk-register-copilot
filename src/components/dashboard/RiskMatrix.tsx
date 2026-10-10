@@ -61,58 +61,60 @@ export const RiskMatrix: React.FC<RiskMatrixProps> = ({
         </div>
 
         {/* 5x5 Grid */}
-        <div className="relative">
-          {/* Y Axis Label */}
-          <div className="absolute -left-6 top-1/2 -rotate-90 -translate-y-1/2 text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
-            Probability
-          </div>
+        <div className="relative overflow-x-auto pb-1 -mx-1 sm:mx-0 px-1 sm:px-0">
+          <div className="min-w-[280px] sm:min-w-0 pl-1 sm:pl-6">
+            {/* Y Axis Label */}
+            <div className="hidden sm:block absolute -left-6 top-1/2 -rotate-90 -translate-y-1/2 text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500">
+              Probability
+            </div>
 
-          <div className="space-y-1.5 pl-2">
-            {[5, 4, 3, 2, 1].map((probLevel) => (
-              <div key={probLevel} className="flex items-center gap-1.5">
-                <span className="w-4 text-xs font-mono-code font-bold text-slate-400 dark:text-slate-500 text-right">{probLevel}</span>
-                <div className="grid grid-cols-5 gap-1.5 flex-1">
-                  {[1, 2, 3, 4, 5].map((impLevel) => {
-                    const prob = probLevel as ProbabilityLevel;
-                    const imp = impLevel as ImpactLevel;
-                    const cellRisks = getCellRisks(prob, imp);
-                    const isSelected = selectedCell?.prob === prob && selectedCell?.imp === imp;
+            <div className="space-y-1.5">
+              {[5, 4, 3, 2, 1].map((probLevel) => (
+                <div key={probLevel} className="flex items-center gap-1.5">
+                  <span className="w-3.5 sm:w-4 text-[11px] sm:text-xs font-mono-code font-bold text-slate-400 dark:text-slate-500 text-right">{probLevel}</span>
+                  <div className="grid grid-cols-5 gap-1 sm:gap-1.5 flex-1">
+                    {[1, 2, 3, 4, 5].map((impLevel) => {
+                      const prob = probLevel as ProbabilityLevel;
+                      const imp = impLevel as ImpactLevel;
+                      const cellRisks = getCellRisks(prob, imp);
+                      const isSelected = selectedCell?.prob === prob && selectedCell?.imp === imp;
 
-                    return (
-                      <button
-                        key={`${prob}-${imp}`}
-                        onClick={() => setSelectedCell(isSelected ? null : { prob, imp })}
-                        className={`h-11 rounded-lg border text-xs font-bold flex flex-col items-center justify-center relative transition-all duration-150 cursor-pointer ${getCellBg(prob, imp)} ${
-                          isSelected ? 'ring-2 ring-slate-900 dark:ring-white ring-offset-1 scale-[1.04] shadow-md z-10' : ''
-                        }`}
-                        title={`P:${prob} × I:${imp} = Score ${prob * imp} (${cellRisks.length} risks)`}
-                      >
-                        <span className="text-[10px] opacity-75 font-mono-code">{prob * imp}</span>
-                        {cellRisks.length > 0 && (
-                          <span className="w-5 h-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[10px] font-mono-code font-bold flex items-center justify-center shadow-xs mt-0.5">
-                            {cellRisks.length}
-                          </span>
-                        )}
-                      </button>
-                    );
-                  })}
+                      return (
+                        <button
+                          key={`${prob}-${imp}`}
+                          onClick={() => setSelectedCell(isSelected ? null : { prob, imp })}
+                          className={`h-9 sm:h-11 rounded-lg border text-xs font-bold flex flex-col items-center justify-center relative transition-all duration-150 cursor-pointer ${getCellBg(prob, imp)} ${
+                            isSelected ? 'ring-2 ring-slate-900 dark:ring-white ring-offset-1 scale-[1.03] shadow-md z-10' : ''
+                          }`}
+                          title={`P:${prob} × I:${imp} = Score ${prob * imp} (${cellRisks.length} risks)`}
+                        >
+                          <span className="text-[9px] sm:text-[10px] opacity-75 font-mono-code">{prob * imp}</span>
+                          {cellRisks.length > 0 && (
+                            <span className="w-4 h-4 sm:w-5 sm:h-5 rounded-full bg-slate-900 dark:bg-white text-white dark:text-slate-900 text-[9px] sm:text-[10px] font-mono-code font-bold flex items-center justify-center shadow-xs mt-0.5">
+                              {cellRisks.length}
+                            </span>
+                          )}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+              ))}
+
+              {/* X Axis Numbers & Label */}
+              <div className="flex items-center gap-1.5 pt-1">
+                <span className="w-3.5 sm:w-4"></span>
+                <div className="grid grid-cols-5 gap-1 sm:gap-1.5 flex-1 text-center text-[11px] sm:text-xs font-mono-code font-bold text-slate-400 dark:text-slate-500">
+                  <span>1</span>
+                  <span>2</span>
+                  <span>3</span>
+                  <span>4</span>
+                  <span>5</span>
                 </div>
               </div>
-            ))}
-
-            {/* X Axis Numbers & Label */}
-            <div className="flex items-center gap-1.5 pt-1 pl-2">
-              <span className="w-4"></span>
-              <div className="grid grid-cols-5 gap-1.5 flex-1 text-center text-xs font-mono-code font-bold text-slate-400 dark:text-slate-500">
-                <span>1</span>
-                <span>2</span>
-                <span>3</span>
-                <span>4</span>
-                <span>5</span>
+              <div className="text-center text-[9px] sm:text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 pt-1">
+                Impact Scale (1 = Negligible → 5 = Catastrophic)
               </div>
-            </div>
-            <div className="text-center text-[10px] font-bold tracking-wider uppercase text-slate-400 dark:text-slate-500 pt-1">
-              Impact Scale (1 = Negligible → 5 = Catastrophic)
             </div>
           </div>
         </div>

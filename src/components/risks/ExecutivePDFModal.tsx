@@ -94,7 +94,7 @@ export const ExecutivePDFModal: React.FC<ExecutivePDFModalProps> = ({ isOpen, on
           </div>
 
           {/* Executive Metrics Overview Grid */}
-          <div className="grid grid-cols-4 gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
+          <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 p-4 rounded-xl bg-slate-50 border border-slate-200">
             <div>
               <span className="text-[10px] font-bold text-slate-400 uppercase tracking-wider block">Total Registered</span>
               <span className="text-xl font-black text-slate-900">{totalRisks} Risks</span>
@@ -118,7 +118,7 @@ export const ExecutivePDFModal: React.FC<ExecutivePDFModalProps> = ({ isOpen, on
           {/* Severity Breakdown Bar */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Severity Distribution</h3>
-            <div className="grid grid-cols-4 gap-2 text-center text-xs font-bold">
+            <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 text-center text-xs font-bold">
               <div className="p-2 rounded bg-red-50 border border-red-200 text-red-900">
                 Critical (≥17): {criticalCount}
               </div>
@@ -137,47 +137,49 @@ export const ExecutivePDFModal: React.FC<ExecutivePDFModalProps> = ({ isOpen, on
           {/* Full Risk Inventory Table */}
           <div className="space-y-2">
             <h3 className="text-xs font-bold text-slate-900 uppercase tracking-wider">Active Risk Inventory</h3>
-            <table className="w-full text-left text-xs border-collapse border border-slate-200">
-              <thead>
-                <tr className="bg-slate-100 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
-                  <th className="p-2 border-r border-slate-200">ID</th>
-                  <th className="p-2 border-r border-slate-200">Title</th>
-                  <th className="p-2 border-r border-slate-200">Category</th>
-                  <th className="p-2 border-r border-slate-200 text-center">P × I</th>
-                  <th className="p-2 border-r border-slate-200 text-center">Score</th>
-                  <th className="p-2 border-r border-slate-200">Severity</th>
-                  <th className="p-2 border-r border-slate-200">Owner</th>
-                  <th className="p-2">Status</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-200">
-                {risks.map((r) => (
-                  <tr key={r.id} className="hover:bg-slate-50">
-                    <td className="p-2 font-mono font-bold text-slate-600 border-r border-slate-200">{r.id}</td>
-                    <td className="p-2 font-semibold text-slate-900 border-r border-slate-200">{r.title}</td>
-                    <td className="p-2 text-slate-600 border-r border-slate-200">{r.category}</td>
-                    <td className="p-2 text-center text-slate-600 font-mono border-r border-slate-200">{r.probability} × {r.impact}</td>
-                    <td className="p-2 text-center font-bold text-slate-900 border-r border-slate-200">{r.score}</td>
-                    <td className="p-2 font-bold border-r border-slate-200">
-                      <span className={`px-1.5 py-0.5 rounded text-[10px] ${
-                        r.severity === 'Critical' ? 'bg-red-100 text-red-800' :
-                        r.severity === 'High' ? 'bg-orange-100 text-orange-800' :
-                        r.severity === 'Medium' ? 'bg-amber-100 text-amber-800' :
-                        'bg-emerald-100 text-emerald-800'
-                      }`}>
-                        {r.severity}
-                      </span>
-                    </td>
-                    <td className="p-2 text-slate-700 border-r border-slate-200">{r.ownerName}</td>
-                    <td className="p-2 font-semibold text-slate-800">{r.status}</td>
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse border border-slate-200 min-w-[580px]">
+                <thead>
+                  <tr className="bg-slate-100 border-b border-slate-200 text-[10px] font-bold text-slate-600 uppercase">
+                    <th className="p-2 border-r border-slate-200">ID</th>
+                    <th className="p-2 border-r border-slate-200">Title</th>
+                    <th className="p-2 border-r border-slate-200">Category</th>
+                    <th className="p-2 border-r border-slate-200 text-center">P × I</th>
+                    <th className="p-2 border-r border-slate-200 text-center">Score</th>
+                    <th className="p-2 border-r border-slate-200">Severity</th>
+                    <th className="p-2 border-r border-slate-200">Owner</th>
+                    <th className="p-2">Status</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody className="divide-y divide-slate-200">
+                  {risks.map((r) => (
+                    <tr key={r.id} className="hover:bg-slate-50">
+                      <td className="p-2 font-mono font-bold text-slate-600 border-r border-slate-200">{r.id}</td>
+                      <td className="p-2 font-semibold text-slate-900 border-r border-slate-200">{r.title}</td>
+                      <td className="p-2 text-slate-600 border-r border-slate-200">{r.category}</td>
+                      <td className="p-2 text-center text-slate-600 font-mono border-r border-slate-200">{r.probability} × {r.impact}</td>
+                      <td className="p-2 text-center font-bold text-slate-900 border-r border-slate-200">{r.score}</td>
+                      <td className="p-2 font-bold border-r border-slate-200">
+                        <span className={`px-1.5 py-0.5 rounded text-[10px] ${
+                          r.severity === 'Critical' ? 'bg-red-100 text-red-800' :
+                          r.severity === 'High' ? 'bg-orange-100 text-orange-800' :
+                          r.severity === 'Medium' ? 'bg-amber-100 text-amber-800' :
+                          'bg-emerald-100 text-emerald-800'
+                        }`}>
+                          {r.severity}
+                        </span>
+                      </td>
+                      <td className="p-2 text-slate-700 border-r border-slate-200">{r.ownerName}</td>
+                      <td className="p-2 font-semibold text-slate-800">{r.status}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </div>
 
           {/* Sign-off & Governance Stamp */}
-          <div className="pt-6 border-t border-slate-200 grid grid-cols-2 gap-8 text-xs">
+          <div className="pt-6 border-t border-slate-200 grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8 text-xs">
             <div>
               <span className="font-bold text-slate-900 block mb-1">Prepared By:</span>
               <p className="text-slate-600">Sunny Prasad</p>

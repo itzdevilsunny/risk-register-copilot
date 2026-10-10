@@ -11,7 +11,6 @@ import { ExecutiveBriefingCard } from '../components/dashboard/ExecutiveBriefing
 import { LifecyclePipelineCard } from '../components/dashboard/LifecyclePipelineCard';
 import { WhatIfSimulator } from '../components/dashboard/WhatIfSimulator';
 import { LiveMonitoringTicker } from '../components/analytics/LiveMonitoringTicker';
-import { Button } from '../ui/Button';
 import { 
   ShieldAlert, 
   AlertTriangle, 
@@ -197,7 +196,7 @@ export default function DashboardPage() {
 
       {/* Risk Appetite Breach Alert Banner (Compact) */}
       {aboveAppetiteRisks.length > 0 && (
-        <div className="p-2.5 px-3.5 rounded-xl bg-red-500/10 dark:bg-red-950/40 border border-red-300 dark:border-red-900/60 flex items-center justify-between gap-3 text-xs animate-in zoom-in-95">
+        <div className="p-2.5 px-3.5 rounded-xl bg-red-500/10 dark:bg-red-950/40 border border-red-300 dark:border-red-900/60 flex flex-col sm:flex-row sm:items-center justify-between gap-2.5 sm:gap-3 text-xs animate-in zoom-in-95">
           <div className="flex items-center gap-2.5 min-w-0">
             <div className="p-1 rounded-md bg-red-600 text-white shrink-0">
               <AlertTriangle className="w-3.5 h-3.5" />
@@ -211,7 +210,7 @@ export default function DashboardPage() {
           </div>
           <Link
             href="/approvals"
-            className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[11px] shrink-0 flex items-center gap-1 transition-colors"
+            className="px-2.5 py-1 bg-red-600 hover:bg-red-700 text-white rounded-lg font-bold text-[11px] shrink-0 self-start sm:self-auto flex items-center gap-1 transition-colors"
           >
             <span>Review & Approve</span>
             <ArrowRight className="w-3 h-3" />
